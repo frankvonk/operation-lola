@@ -1,3 +1,4 @@
+'use client';
 import { defineAuth } from '@aws-amplify/backend';
 
 /**
