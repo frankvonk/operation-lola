@@ -18,8 +18,8 @@ function App() {
         <div>
           <h1>Get started</h1>
           <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-            yolo
+            this is universal love, coming from leeloo
+            
           </p>
         </div>
         <button
