@@ -16,7 +16,14 @@ import "@aws-amplify/ui-react/styles.css";
 import { getUrl } from "aws-amplify/storage";
 import { uploadData } from "aws-amplify/storage";
 import { generateClient } from "aws-amplify/data";
-import outputs from "../amplify_outputs.json";
+let outputs = {};
+try {
+  // Try to require the file if it exists (CI may not have this file)
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  outputs = require("../amplify_outputs.json");
+} catch (e) {
+  outputs = {};
+}
 
 /**
  * @type {import('aws-amplify/data').Client<import('../amplify/data/resource').Schema>}
