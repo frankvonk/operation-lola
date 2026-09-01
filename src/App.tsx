@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import {
   Authenticator,
   Button,
@@ -13,31 +13,34 @@ import {
 } from "@aws-amplify/ui-react";
 import { Amplify } from "aws-amplify";
 import "@aws-amplify/ui-react/styles.css";
+// import "aws-amplify/styles.css";
 import { getUrl } from "aws-amplify/storage";
 import { uploadData } from "aws-amplify/storage";
 import { generateClient } from "aws-amplify/data";
 import outputs from "../amplify_outputs.json";
-
-/**
- * @type {import('aws-amplify/data').Client<import('../amplify/data/resource').Schema>}
- */
+import { Note } from "./interfaces";
+import type { AmplifyClient } from "./types";
+import Header from "./Components/Header";
 
 Amplify.configure(outputs);
+
 const client = generateClient({
   authMode: "userPool",
-});
+}) as unknown as AmplifyClient;
 
 export default function App() {
-  const [notes, setNotes] = useState([]);
+  const [notes, setNotes] = useState<Note[]>([]);
 
   useEffect(() => {
     fetchNotes();
   }, []);
 
   async function fetchNotes() {
-    const { data: notes } = await client.models.Note.list();
+    const { data: notesList } = await client.models.Note.list();
+    const notesToRender = (notesList ?? []) as Note[];
+
     await Promise.all(
-      notes.map(async (note) => {
+      notesToRender.map(async (note) => {
         if (note.image) {
           const linkToStorageFile = await getUrl({
             path: ({ identityId }) => `media/${identityId}/${note.image}`,
@@ -48,34 +51,45 @@ export default function App() {
         return note;
       })
     );
-    console.log(notes);
-    setNotes(notes);
+
+    console.log(notesToRender);
+    setNotes(notesToRender);
   }
 
-  async function createNote(event) {
+  async function createNote(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.target);
-    console.log(form.get("image").name);
+    const form = new FormData(event.currentTarget);
+
+    const nameValue = form.get("name");
+    const descriptionValue = form.get("description");
+    const imageValue = form.get("image");
+
+    if (typeof nameValue !== "string" || typeof descriptionValue !== "string") {
+      return;
+    }
+
+    if (!(imageValue instanceof File)) {
+      return;
+    }
 
     const { data: newNote } = await client.models.Note.create({
-      name: form.get("name"),
-      description: form.get("description"),
-      image: form.get("image").name,
+      name: nameValue,
+      description: descriptionValue,
+      image: imageValue.name,
     });
 
-    console.log(newNote);
-    if (newNote.image)
-      if (newNote.image)
-        await uploadData({
-          path: ({ identityId }) => `media/${identityId}/${newNote.image}`,
-          data: form.get("image"),
-        }).result;
+    if (newNote?.image) {
+      await uploadData({
+        path: ({ identityId }) => `media/${identityId}/${newNote.image}`,
+        data: imageValue,
+      }).result;
+    }
 
     fetchNotes();
-    event.target.reset();
+    event.currentTarget.reset();
   }
 
-  async function deleteNote({ id }) {
+  async function deleteNote({ id }: { id: string }) {
     const toBeDeletedNote = {
       id: id,
     };
@@ -99,7 +113,7 @@ export default function App() {
           width="70%"
           margin="0 auto"
         >
-          <Heading level={1}>My Notes App</Heading>
+          <Header />
           <View as="form" margin="3rem 0" onSubmit={createNote}>
             <Flex
               direction="column"
@@ -137,7 +151,6 @@ export default function App() {
             </Flex>
           </View>
           <Divider />
-          <Heading level={2}>Current Notes</Heading>
           <Grid
             margin="3rem 0"
             autoFlow="column"
@@ -158,13 +171,13 @@ export default function App() {
                 className="box"
               >
                 <View>
-                  <Heading level="3">{note.name}</Heading>
+                  <Heading level={3}>{note.name}</Heading>
                 </View>
                 <Text fontStyle="italic">{note.description}</Text>
                 {note.image && (
                   <Image
-                    src={note.image}
-                    alt={`visual aid for ${notes.name}`}
+                    src={note.image as string}
+                    alt={`visual aid for ${note.name}`}
                     style={{ width: 400 }}
                   />
                 )}
