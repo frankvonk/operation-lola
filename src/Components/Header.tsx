@@ -3,6 +3,12 @@ const Header = () => {
     return (
         <header style={styles.header}>
             <h1 style={styles.h1}>My Notes App</h1>
+            <button>Saving</button>
+            <button>In</button>
+            <button>Out</button>
+            <button>Import</button>
+            <button>Export</button>
+            <button>Counter</button>
         </header>
     );
 }

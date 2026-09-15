@@ -104,95 +104,107 @@ export default function App() {
 
   return (
     <Authenticator>
-      {({ signOut }) => (
-        <Flex
-          className="App"
-          justifyContent="center"
-          alignItems="center"
-          direction="column"
-          width="70%"
-          margin="0 auto"
-        >
-          <Header />
-          <View as="form" margin="3rem 0" onSubmit={createNote}>
-            <Flex
-              direction="column"
-              justifyContent="center"
-              gap="2rem"
-              padding="2rem"
-            >
-              <TextField
-                name="name"
-                placeholder="Note Name"
-                label="Note Name"
-                labelHidden
-                variation="quiet"
-                required
-              />
-              <TextField
-                name="description"
-                placeholder="Note Description"
-                label="Note Description"
-                labelHidden
-                variation="quiet"
-                required
-              />
-              <View
-                name="image"
-                as="input"
-                type="file"
-                alignSelf={"end"}
-                accept="image/png, image/jpeg"
-              />
-
-              <Button type="submit" variation="primary">
-                Create Note
-              </Button>
-            </Flex>
-          </View>
-          <Divider />
-          <Grid
-            margin="3rem 0"
-            autoFlow="column"
-            justifyContent="center"
-            gap="2rem"
-            alignContent="center"
-          >
-            {notes.map((note) => (
-              <Flex
-                key={note.id || note.name}
-                direction="column"
-                justifyContent="center"
-                alignItems="center"
-                gap="2rem"
-                border="1px solid #ccc"
-                padding="2rem"
-                borderRadius="5%"
-                className="box"
-              >
-                <View>
-                  <Heading level={3}>{note.name}</Heading>
-                </View>
-                <Text fontStyle="italic">{note.description}</Text>
-                {note.image && (
-                  <Image
-                    src={note.image as string}
-                    alt={`visual aid for ${note.name}`}
-                    style={{ width: 400 }}
-                  />
-                )}
-                <Button
-                  variation="destructive"
-                  onClick={() => deleteNote(note)}
-                >
-                  Delete note
-                </Button>
-              </Flex>
-            ))}
-          </Grid>
-          <Button onClick={signOut}>Sign Out</Button>
-        </Flex>
-      )}
+      {({ signOut, user }) => <AppContent user={user} signOut={signOut} notes={notes} setNotes={setNotes} fetchNotes={fetchNotes} createNote={createNote} deleteNote={deleteNote} />}
     </Authenticator>
+  );
+}
+
+
+function AppContent({ user, signOut, notes, setNotes, fetchNotes, createNote, deleteNote }: any) {
+  useEffect(() => {
+    if (user) {
+      setNotes([]); // Clear previous user's notes
+      fetchNotes();
+    }
+  }, [user?.username]);
+
+  return (
+    <Flex
+      className="App"
+      justifyContent="center"
+      alignItems="center"
+      direction="column"
+      width="70%"
+      margin="0 auto"
+    >
+      <Header />
+      <View as="form" margin="3rem 0" onSubmit={createNote}>
+        <Flex
+          direction="column"
+          justifyContent="center"
+          gap="2rem"
+          padding="2rem"
+        >
+          <TextField
+            name="name"
+            placeholder="Note Name"
+            label="Note Name"
+            labelHidden
+            variation="quiet"
+            required
+          />
+          <TextField
+            name="description"
+            placeholder="Note Description"
+            label="Note Description"
+            labelHidden
+            variation="quiet"
+            required
+          />
+          <View
+            name="image"
+            as="input"
+            type="file"
+            alignSelf={"end"}
+            accept="image/png, image/jpeg"
+          />
+
+          <Button type="submit" variation="primary">
+            Create Note
+          </Button>
+        </Flex>
+      </View>
+      <Divider />
+      <Grid
+        margin="3rem 0"
+        autoFlow="column"
+        justifyContent="center"
+        gap="2rem"
+        alignContent="center"
+      >
+        {notes.map((note) => (
+          <Flex
+            key={note.id || note.name}
+            direction="column"
+            justifyContent="center"
+            alignItems="center"
+            gap="2rem"
+            border="1px solid #ccc"
+            padding="2rem"
+            borderRadius="5%"
+            className="box"
+          >
+            <View>
+              <Heading level={3}>{note.name}</Heading>
+            </View>
+            <Text fontStyle="italic">{note.description}</Text>
+            {note.image && (
+              <Image
+                src={note.image as string}
+                alt={`visual aid for ${note.name}`}
+                style={{ width: 400 }}
+              />
+            )}
+            <Button
+              variation="destructive"
+              onClick={() => deleteNote(note)}
+            >
+              Delete note
+            </Button>
+          </Flex>
+        ))}
+      </Grid>
+      <Button onClick={signOut}>Sign Out</Button>
+    </Flex>
   );
 }
